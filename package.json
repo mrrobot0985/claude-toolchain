@@ -4,7 +4,7 @@
   "description": "Claude environment toolchain installer — MCP servers, graphify, impeccable, and plugins",
   "type": "module",
   "bin": {
-    "claude-toolchain": "./dist/cli.js"
+    "claude-toolchain": "dist/cli.js"
   },
   "files": [
     "dist/",
