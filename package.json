@@ -1,0 +1,39 @@
+{
+  "name": "claude-toolchain",
+  "version": "0.1.0",
+  "description": "Claude environment toolchain installer — MCP servers, graphify, impeccable, and plugins",
+  "type": "module",
+  "bin": {
+    "claude-toolchain": "./dist/cli.js"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build",
+    "setup": "node ./dist/cli.js setup",
+    "status": "node ./dist/cli.js status"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.10"
+  },
+  "keywords": [
+    "claude",
+    "mcp",
+    "graphify",
+    "impeccable",
+    "toolchain"
+  ],
+  "license": "MIT"
+}
