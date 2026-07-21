@@ -2,6 +2,10 @@
 import { checkDeps } from './check.js';
 import { createConfigFiles } from './install.js';
 import type { Tool } from './types.js';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const pkg = require('../package.json');
 
 const CLAUDE_VIDEO: Tool = {
   name: 'claude-video',
@@ -37,7 +41,7 @@ async function main(): Promise<void> {
   const cmd = process.argv[2];
 
   if (cmd === '--version' || cmd === '-v') {
-    console.log('claude-toolchain v0.1.0');
+    console.log(`claude-toolchain v${pkg.version}`);
     return;
   }
 
