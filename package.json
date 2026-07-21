@@ -1,6 +1,6 @@
 {
   "name": "claude-toolchain",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Claude environment toolchain — installs system deps and config for claude-video",
   "type": "module",
   "bin": {
@@ -17,6 +17,10 @@
     "@types/node": "^22.0.0",
     "typescript": "^5.7.0",
     "vitest": "^4.1.10"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mrrobot0985/claude-toolchain.git"
   },
   "license": "MIT"
 }
