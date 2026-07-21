@@ -34,6 +34,14 @@ function render(items: MenuItem[], cursorIndex: number): void {
 }
 
 export async function interactiveMenu(tools: Tool[]): Promise<Tool[]> {
+  // Fall back to non-interactive selection when stdin is not a TTY
+  if (!stdin.isTTY) {
+    const selected = tools.filter((t) => !t.optional);
+    console.log(`Non-TTY environment detected. Installing ${selected.length} required tool(s).`);
+    console.log(`Use --non-interactive for explicit non-interactive mode.\n`);
+    return selected;
+  }
+
   const items: MenuItem[] = tools.map((tool) => ({
     tool,
     selected: !tool.optional && !tool.plugin,

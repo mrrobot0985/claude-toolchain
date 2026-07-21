@@ -4,7 +4,7 @@ import { MANIFEST } from '../manifest.js';
 describe('MANIFEST', () => {
   it('has name and version', () => {
     expect(MANIFEST.name).toBe('claude-toolchain');
-    expect(MANIFEST.version).toBe('0.2.0');
+    expect(MANIFEST.version).toBe('0.2.1');
   });
 
   it('does not include MCP servers', () => {
