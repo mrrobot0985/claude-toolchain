@@ -4,13 +4,6 @@ on:
   push:
     tags:
       - 'v*.*.*'
-  workflow_dispatch:
-    inputs:
-      dry_run:
-        description: 'Run dry-run instead of actual publish'
-        required: false
-        default: false
-        type: boolean
 
 permissions:
   contents: read
@@ -30,7 +23,6 @@ jobs:
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org/
-          token: ''
 
       - name: Install dependencies
         run: npm ci
@@ -42,15 +34,4 @@ jobs:
         run: npm test
 
       - name: Publish to npm
-        run: |
-          if [ "${{ inputs.dry_run }}" = "true" ] || [ "$DRY_RUN" = "true" ]; then
-            echo "Dry run: verifying build artifacts"
-            test -d dist/ && ls -la dist/
-            test -f dist/cli.js && echo "OK: dist/cli.js exists"
-            test -f package.json && echo "OK: package.json exists"
-            echo "Dry run complete — tarball would be published to npm"
-          else
-            npm publish --provenance --access public
-          fi
-        env:
-          DRY_RUN: ${{ env.DRY_RUN }}
+        run: npm publish --provenance --access public
