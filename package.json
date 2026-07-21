@@ -35,5 +35,9 @@
     "impeccable",
     "toolchain"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mrrobot0985/claude-toolchain.git"
+  },
   "license": "MIT"
 }
