@@ -62,9 +62,10 @@ async function installPlugin(tool: Tool): Promise<boolean> {
 
   console.log('  Installing plugin via Claude CLI...');
   for (const command of tool.pluginCommands) {
+    const args = command.replace(/^\//, '').split(' ');
     const output = await new Promise<{ ok: boolean; stdout: string }>((resolve) => {
       let stdout = '';
-      const proc = spawn('claude', [command], { stdio: ['ignore', 'pipe', 'pipe'], shell: false });
+      const proc = spawn('claude', args, { stdio: ['ignore', 'pipe', 'pipe'], shell: false });
       proc.stdout?.on('data', (d) => {
         stdout += d.toString();
       });
@@ -74,8 +75,9 @@ async function installPlugin(tool: Tool): Promise<boolean> {
       proc.on('error', () => resolve({ ok: false, stdout }));
       proc.on('close', (code) => resolve({ ok: code === 0, stdout }));
     });
-    if (!output.ok || output.stdout.includes("isn't available")) {
-      console.log(`  Plugin command unavailable: ${command}`);
+    if (!output.ok) {
+      console.log(`  Plugin command failed: ${command}`);
+      console.log(`  Output: ${output.stdout.trim()}`);
       return false;
     }
   }
