@@ -10,7 +10,7 @@ import type { Manifest } from './types.js';
  */
 export const MANIFEST: Manifest = {
   name: 'claude-toolchain',
-  version: '2.0.0',
+  version: '0.1.1',
   tools: [
     {
       name: 'graphify',

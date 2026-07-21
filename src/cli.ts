@@ -5,6 +5,7 @@ import { checkTool, printStatus } from './status.js';
 
 const CMD = process.argv[2];
 const INCLUDE_OPTIONAL = process.argv.includes('--include-optional');
+const SHOW_VERSION = process.argv.includes('--version') || process.argv.includes('-v');
 
 async function setup(): Promise<void> {
   console.log(`=== ${MANIFEST.name} v${MANIFEST.version} ===`);
@@ -78,6 +79,11 @@ async function status(): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  if (SHOW_VERSION) {
+    console.log(`${MANIFEST.name} v${MANIFEST.version}`);
+    process.exit(0);
+  }
+
   switch (CMD) {
     case 'setup':
       await setup();

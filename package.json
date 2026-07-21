@@ -1,6 +1,6 @@
 {
   "name": "claude-toolchain",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Claude environment toolchain installer — MCP servers, graphify, impeccable, and plugins",
   "type": "module",
   "bin": {
