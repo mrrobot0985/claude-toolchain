@@ -61,6 +61,12 @@ node dist/cli.js setup --non-interactive
 
 # Non-interactive: install everything including optional tools
 node dist/cli.js setup --non-interactive --include-optional
+
+# Interactive uninstall (pick which tools to remove)
+node dist/cli.js uninstall
+
+# Non-interactive uninstall
+node dist/cli.js uninstall --non-interactive
 ```
 
 ### Interactive menu

@@ -10,13 +10,14 @@ import type { Manifest } from './types.js';
  */
 export const MANIFEST: Manifest = {
   name: 'claude-toolchain',
-  version: '0.2.1',
+  version: '0.3.0',
   tools: [
     {
       name: 'graphify',
       description: 'Knowledge graph builder for codebases',
       checkCommand: ['graphify', '--version'],
       installCommand: ['uv', 'tool', 'install', 'graphifyy'],
+      uninstallCommand: ['uv', 'tool', 'uninstall', 'graphifyy'],
       postInstall: ['graphify', 'install'],
       projectFiles: [
         {
@@ -42,6 +43,7 @@ export const MANIFEST: Manifest = {
       description: 'Design system quality enforcer',
       checkCommand: ['npx', 'impeccable', '--version'],
       installCommand: ['npx', 'impeccable', 'install'],
+      uninstallCommand: ['npm', 'uninstall', '-g', 'impeccable'],
       optional: true,
       projectFiles: [
         {

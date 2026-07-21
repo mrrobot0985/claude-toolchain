@@ -3,6 +3,7 @@ export interface Tool {
   description: string;
   checkCommand: string[];          // e.g. ['claude', '--version']
   installCommand: string[];        // e.g. ['npm', 'install', '-g', '@anthropic-ai/claude-code']
+  uninstallCommand?: string[];     // e.g. ['npm', 'uninstall', '-g', 'impeccable']
   postInstall?: string[];          // e.g. ['graphify', 'install']
   projectFiles?: ProjectFile[];    // .gitignore / .claudeignore entries
   env?: Record<string, string>;    // Environment variables to set

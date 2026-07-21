@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import { access, appendFile, writeFile } from 'node:fs/promises';
+import { access, appendFile, writeFile, unlink, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import type { Tool } from './types.js';
@@ -87,6 +87,74 @@ export async function applyProjectFiles(tool: Tool): Promise<void> {
       console.log(`  WRITE: ${file.path}`);
     }
   }
+}
+
+export async function removeProjectFiles(tool: Tool): Promise<void> {
+  if (!tool.projectFiles) return;
+
+  for (const file of tool.projectFiles) {
+    const fullPath = join(PROJECT_ROOT, file.path);
+    const exists = await fileExists(fullPath);
+    if (!exists) continue;
+
+    if (file.appendIfExists && file.marker) {
+      // Remove the appended block by reading and filtering lines
+      const content = await readFile(fullPath);
+      const lines = content.split('\n');
+      const filtered: string[] = [];
+      let inBlock = false;
+
+      for (const line of lines) {
+        // Detect start of our block
+        if (line.includes(file.marker)) {
+          inBlock = true;
+          continue;
+        }
+        // Detect end marker for impeccable
+        if (inBlock && line.includes('# impeccable-ignore-end')) {
+          inBlock = false;
+          continue;
+        }
+        if (!inBlock) {
+          filtered.push(line);
+        }
+      }
+
+      const newContent = filtered.join('\n');
+      if (newContent !== content) {
+        await writeFile(fullPath, newContent);
+        console.log(`  CLEAN: removed ${tool.name} entries from ${file.path}`);
+      }
+    } else {
+      // File was created by us — delete it
+      await unlink(fullPath);
+      console.log(`  REMOVE: ${file.path}`);
+    }
+  }
+}
+
+export async function uninstallTool(tool: Tool): Promise<void> {
+  if (tool.plugin) {
+    console.log(`  SKIP: ${tool.name} — agent-installed plugin, remove manually`);
+    return;
+  }
+
+  if (!tool.uninstallCommand || tool.uninstallCommand.length === 0) {
+    console.log(`  SKIP: ${tool.name} — no uninstall command defined`);
+    return;
+  }
+
+  const [cmd, ...args] = tool.uninstallCommand;
+  console.log(`  RUN: ${cmd} ${args.join(' ')}`);
+
+  await new Promise<void>((resolve, reject) => {
+    const proc = spawn(cmd, args, { stdio: 'inherit', shell: false, env: getEnv() });
+    proc.on('error', (err) => reject(err));
+    proc.on('close', (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`${tool.name} uninstall exited with code ${code}`));
+    });
+  });
 }
 
 export async function applyEnv(tool: Tool): Promise<void> {

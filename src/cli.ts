@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { MANIFEST } from './manifest.js';
-import { isInstalled, installTool, applyProjectFiles, applyEnv } from './runner.js';
+import { isInstalled, installTool, applyProjectFiles, applyEnv, uninstallTool, removeProjectFiles } from './runner.js';
 import { checkTool, printStatus } from './status.js';
 import { interactiveMenu } from './menu.js';
 
@@ -59,6 +59,53 @@ async function processTool(tool: ReturnType<typeof MANIFEST.tools.filter>[number
   }
 }
 
+async function uninstall(): Promise<void> {
+  console.log(`=== ${MANIFEST.name} v${MANIFEST.version} ===\n`);
+
+  let toolsToRemove: typeof MANIFEST.tools;
+
+  if (NON_INTERACTIVE) {
+    toolsToRemove = MANIFEST.tools.filter((t) => !t.optional || INCLUDE_OPTIONAL);
+    console.log(`Non-interactive mode: uninstalling ${toolsToRemove.length} tool(s)\n`);
+  } else {
+    toolsToRemove = await interactiveMenu(MANIFEST.tools);
+  }
+
+  for (const tool of toolsToRemove) {
+    await processUninstall(tool);
+  }
+
+  // Report plugin-only tools that need manual /plugin commands
+  const selectedPlugins = toolsToRemove.filter((t) => t.plugin);
+  if (selectedPlugins.length > 0) {
+    console.log('Plugin tools (remove manually inside Claude):');
+    for (const p of selectedPlugins) {
+      console.log(`  /plugin remove ${p.plugin!.installCommand}`);
+    }
+    console.log('');
+  }
+
+  console.log('=== Uninstall complete ===');
+}
+
+async function processUninstall(tool: ReturnType<typeof MANIFEST.tools.filter>[number]): Promise<void> {
+  const already = await isInstalled(tool);
+  if (!already) {
+    console.log(`SKIP: ${tool.name} — not installed`);
+    return;
+  }
+
+  console.log(`UNINSTALL: ${tool.description}`);
+  try {
+    await uninstallTool(tool);
+    await removeProjectFiles(tool);
+    console.log(`OK: ${tool.name} removed\n`);
+  } catch (err) {
+    console.error(`FAIL: ${tool.name} — ${(err as Error).message}\n`);
+    // Continue with other tools; don't fail the whole run
+  }
+}
+
 async function status(): Promise<void> {
   const results = await Promise.all(
     MANIFEST.tools.map((t) => checkTool(t).then((r) => ({ ...r, optional: t.optional })))
@@ -83,11 +130,14 @@ async function main(): Promise<void> {
     case 'setup':
       await setup();
       break;
+    case 'uninstall':
+      await uninstall();
+      break;
     case 'status':
       await status();
       break;
     default:
-      console.error(`Usage: claude-toolchain <setup|status> [--non-interactive] [--include-optional]`);
+      console.error(`Usage: claude-toolchain <setup|uninstall|status> [--non-interactive] [--include-optional]`);
       process.exit(1);
   }
 }
