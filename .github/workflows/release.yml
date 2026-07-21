@@ -29,12 +29,7 @@ jobs:
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org/
-
-      - name: Configure npm for Trusted Publishing
-        run: |
-          # Remove any auth token from npmrc to force OIDC
-          npm config delete //registry.npmjs.org/:_authToken 2>/dev/null || true
-          npm config set registry https://registry.npmjs.org/
+          token: ''
 
       - name: Install dependencies
         run: npm ci
