@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-import { checkDeps } from './check.js';
+import { checkDeps, isAvailable } from './check.js';
 import { createConfigFiles } from './install.js';
-import type { Tool } from './types.js';
+import type { Tool, SystemDep } from './types.js';
 import { createRequire } from 'node:module';
+import { spawn } from 'node:child_process';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
@@ -16,12 +17,14 @@ const CLAUDE_VIDEO: Tool = {
       description: 'Frame extraction from video files',
       checkCommand: ['ffmpeg', '-version'],
       installHint: 'sudo apt install ffmpeg',
+      autoInstall: ['sudo', 'apt', 'install', '-y', 'ffmpeg'],
     },
     {
       name: 'yt-dlp',
       description: 'Video downloading from YouTube and other platforms',
       checkCommand: ['yt-dlp', '--version'],
       installHint: 'pip install yt-dlp',
+      autoInstall: ['pip', 'install', '--user', 'yt-dlp'],
     },
   ],
   configFiles: [
@@ -36,6 +39,19 @@ const CLAUDE_VIDEO: Tool = {
     '/plugin install watch@claude-video',
   ],
 };
+
+async function installSystemDep(dep: SystemDep): Promise<boolean> {
+  if (!dep.autoInstall) return false;
+
+  const [cmd, ...args] = dep.autoInstall;
+  console.log(`  INSTALL: ${dep.name} (${cmd} ${args.join(' ')})`);
+
+  return new Promise((resolve) => {
+    const proc = spawn(cmd, args, { stdio: 'inherit', shell: false });
+    proc.on('error', () => resolve(false));
+    proc.on('close', (code) => resolve(code === 0));
+  });
+}
 
 async function main(): Promise<void> {
   const cmd = process.argv[2];
@@ -70,13 +86,29 @@ async function main(): Promise<void> {
     console.log(`=== Setting up ${CLAUDE_VIDEO.name} ===\n`);
     const results = await checkDeps(CLAUDE_VIDEO.systemDeps);
     const missing = results.filter((r) => !r.available);
+
     if (missing.length > 0) {
-      console.log('Missing system dependencies:');
+      console.log(`Missing ${missing.length} system dependency(ies). Attempting auto-install...\n`);
       for (const m of missing) {
+        const dep = CLAUDE_VIDEO.systemDeps.find((d) => d.name === m.name)!;
+        const ok = await installSystemDep(dep);
+        if (!ok) {
+          console.log(`\nAuto-install failed for ${dep.name}. Install manually:\n  ${dep.installHint}`);
+          process.exit(1);
+        }
+      }
+      console.log('');
+    }
+
+    // Re-check after installation
+    const recheck = await checkDeps(CLAUDE_VIDEO.systemDeps);
+    const stillMissing = recheck.filter((r) => !r.available);
+    if (stillMissing.length > 0) {
+      console.log('Still missing after auto-install:');
+      for (const m of stillMissing) {
         const dep = CLAUDE_VIDEO.systemDeps.find((d) => d.name === m.name)!;
         console.log(`  ${dep.name}: ${dep.installHint}`);
       }
-      console.log('\nInstall them first, then re-run.');
       process.exit(1);
     }
 

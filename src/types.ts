@@ -3,6 +3,7 @@ export interface SystemDep {
   description: string;
   checkCommand: string[];
   installHint: string;
+  autoInstall?: string[];
 }
 
 export interface ConfigFile {

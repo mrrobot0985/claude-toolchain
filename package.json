@@ -1,6 +1,6 @@
 {
   "name": "claude-toolchain",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Claude environment toolchain — installs system deps and config for claude-video",
   "type": "module",
   "bin": {
