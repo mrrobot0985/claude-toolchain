@@ -48,6 +48,7 @@ jobs:
             test -f package.json && echo "OK: package.json exists"
             echo "Dry run complete — tarball would be published to npm"
           else
+            unset NODE_AUTH_TOKEN
             npm publish --provenance --access public
           fi
         env:
