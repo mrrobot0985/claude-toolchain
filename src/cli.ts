@@ -2,47 +2,42 @@
 import { MANIFEST } from './manifest.js';
 import { isInstalled, installTool, applyProjectFiles, applyEnv } from './runner.js';
 import { checkTool, printStatus } from './status.js';
+import { interactiveMenu } from './menu.js';
 
 const CMD = process.argv[2];
 const INCLUDE_OPTIONAL = process.argv.includes('--include-optional');
+const NON_INTERACTIVE = process.argv.includes('--non-interactive') || process.argv.includes('-y');
 const SHOW_VERSION = process.argv.includes('--version') || process.argv.includes('-v');
 
 async function setup(): Promise<void> {
-  console.log(`=== ${MANIFEST.name} v${MANIFEST.version} ===`);
+  console.log(`=== ${MANIFEST.name} v${MANIFEST.version} ===\n`);
 
-  const required = MANIFEST.tools.filter((t) => !t.optional);
-  const optional = MANIFEST.tools.filter((t) => t.optional);
+  let toolsToInstall: typeof MANIFEST.tools;
 
-  console.log(`Installing ${required.length} required tool(s) into Claude environment...\n`);
+  if (NON_INTERACTIVE) {
+    // Legacy behavior: install required + optional if --include-optional
+    toolsToInstall = MANIFEST.tools.filter((t) => !t.optional || INCLUDE_OPTIONAL);
+    console.log(`Non-interactive mode: installing ${toolsToInstall.length} tool(s)\n`);
+  } else {
+    toolsToInstall = await interactiveMenu(MANIFEST.tools);
+  }
 
-  for (const tool of required) {
+  for (const tool of toolsToInstall) {
     await processTool(tool);
   }
 
-  if (INCLUDE_OPTIONAL && optional.length > 0) {
-    console.log(`Installing ${optional.length} optional tool(s)...\n`);
-    for (const tool of optional) {
-      await processTool(tool);
-    }
-  } else if (optional.length > 0) {
-    console.log(`Skipped ${optional.length} optional tool(s) (use --include-optional to install):`);
-    for (const tool of optional) {
-      console.log(`  - ${tool.name}: ${tool.description}`);
+  // Report plugin-only tools that need manual /plugin commands
+  const selectedPlugins = toolsToInstall.filter((t) => t.plugin);
+  if (selectedPlugins.length > 0) {
+    console.log('Plugin tools (install manually inside Claude):');
+    for (const p of selectedPlugins) {
+      console.log(`  /plugin marketplace add ${p.plugin!.marketplaceAdd}`);
+      console.log(`  /plugin install ${p.plugin!.installCommand}`);
     }
     console.log('');
   }
 
-  // Report plugin-only tools that need manual /plugin commands
-  const plugins = MANIFEST.tools.filter((t) => t.plugin);
-  if (plugins.length > 0) {
-    console.log('Plugin tools (install manually inside Claude):');
-    for (const p of plugins) {
-      console.log(`  /plugin marketplace add ${p.plugin!.marketplaceAdd}`);
-      console.log(`  /plugin install ${p.plugin!.installCommand}`);
-    }
-  }
-
-  console.log('\n=== Setup complete ===');
+  console.log('=== Setup complete ===');
 }
 
 async function processTool(tool: ReturnType<typeof MANIFEST.tools.filter>[number]): Promise<void> {
@@ -92,7 +87,7 @@ async function main(): Promise<void> {
       await status();
       break;
     default:
-      console.error(`Usage: claude-toolchain <setup|status> [--include-optional]`);
+      console.error(`Usage: claude-toolchain <setup|status> [--non-interactive] [--include-optional]`);
       process.exit(1);
   }
 }

@@ -53,12 +53,39 @@ npm run build
 # See what's installed
 node dist/cli.js status
 
-# Install required tools only
+# Interactive setup (pick which tools to install)
 node dist/cli.js setup
 
-# Install everything including optional tools
-node dist/cli.js setup --include-optional
+# Non-interactive: install required tools only
+node dist/cli.js setup --non-interactive
+
+# Non-interactive: install everything including optional tools
+node dist/cli.js setup --non-interactive --include-optional
 ```
+
+### Interactive menu
+
+Inspired by [mattpocock/skills](https://github.com/mattpocock/skills), `setup` without flags launches an interactive checkbox menu:
+
+```
+Claude Toolchain — Select tools to install:
+
+> [x] graphify
+    Knowledge graph builder for codebases
+
+  [ ] impeccable
+    Design system quality enforcer (optional)
+
+> [x] claude-video
+    Video frame extraction and analysis plugin [plugin]
+
+> [x] ponytail
+    Subagent rule injection and quality control plugin [plugin]
+
+  ↑↓ navigate  SPACE toggle  ENTER confirm  a toggle all
+```
+
+Navigate with arrow keys, toggle items with spacebar, press **a** to toggle all, **enter** to confirm.
 
 ## Tools managed
 
