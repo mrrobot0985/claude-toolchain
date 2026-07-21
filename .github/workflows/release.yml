@@ -4,6 +4,13 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run npm publish --dry-run instead of actual publish'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -33,6 +40,11 @@ jobs:
         run: npm test
 
       - name: Publish to npm
-        run: npm publish --provenance
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            npm publish --dry-run
+          else
+            npm publish --provenance
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
