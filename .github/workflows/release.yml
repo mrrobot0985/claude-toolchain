@@ -24,14 +24,14 @@ jobs:
           registry-url: https://registry.npmjs.org/
           token: ''
 
-      - name: Configure npm for Trusted Publishing
+      - name: Debug npm config
         run: |
-          # Remove any injected auth tokens
-          rm -f ~/.npmrc
-          npm config set registry https://registry.npmjs.org/
-          npm config set auth-type web
-          # Verify no token is set
-          npm config list | grep -i auth || echo "No auth config found (good)"
+          echo "=== npm config ==="
+          npm config list
+          echo "=== .npmrc contents ==="
+          cat ~/.npmrc 2>/dev/null || echo "No .npmrc"
+          echo "=== env vars ==="
+          env | grep -i "NPM\|NODE\|TOKEN" || true
 
       - name: Install dependencies
         run: npm ci
