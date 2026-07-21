@@ -24,14 +24,12 @@ jobs:
           registry-url: https://registry.npmjs.org/
           token: ''
 
-      - name: Debug npm config
+      - name: Clear token auth for OIDC
         run: |
-          echo "=== npm config ==="
-          npm config list
-          echo "=== .npmrc contents ==="
-          cat ~/.npmrc 2>/dev/null || echo "No .npmrc"
-          echo "=== env vars ==="
-          env | grep -i "NPM\|NODE\|TOKEN" || true
+          # Remove auth token that setup-node injected
+          npm config delete //registry.npmjs.org/:_authToken
+          # Verify it's gone
+          npm config list | grep auth || echo "No auth config"
 
       - name: Install dependencies
         run: npm ci
