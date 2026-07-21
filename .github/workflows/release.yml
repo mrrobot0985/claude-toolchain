@@ -43,9 +43,10 @@ jobs:
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             echo "Dry run: verifying build artifacts"
-            ls -la dist/
-            npm pack --dry-run 2>&1 || true
-            echo "Dry run complete — tarball would be published"
+            test -d dist/ && ls -la dist/
+            test -f dist/cli.js && echo "OK: dist/cli.js exists"
+            test -f package.json && echo "OK: package.json exists"
+            echo "Dry run complete — tarball would be published to npm"
           else
             npm publish --provenance
           fi
