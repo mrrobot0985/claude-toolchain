@@ -53,6 +53,35 @@ async function installSystemDep(dep: SystemDep): Promise<boolean> {
   });
 }
 
+async function installPlugin(tool: Tool): Promise<boolean> {
+  const claudeAvailable = await isAvailable('claude', ['--version']);
+  if (!claudeAvailable) {
+    console.log('  SKIP: claude CLI not found — install plugin manually');
+    return false;
+  }
+
+  console.log('  Installing plugin via Claude CLI...');
+  for (const command of tool.pluginCommands) {
+    const output = await new Promise<{ ok: boolean; stdout: string }>((resolve) => {
+      let stdout = '';
+      const proc = spawn('claude', [command], { stdio: ['ignore', 'pipe', 'pipe'], shell: false });
+      proc.stdout?.on('data', (d) => {
+        stdout += d.toString();
+      });
+      proc.stderr?.on('data', (d) => {
+        stdout += d.toString();
+      });
+      proc.on('error', () => resolve({ ok: false, stdout }));
+      proc.on('close', (code) => resolve({ ok: code === 0, stdout }));
+    });
+    if (!output.ok || output.stdout.includes("isn't available")) {
+      console.log(`  Plugin command unavailable: ${command}`);
+      return false;
+    }
+  }
+  return true;
+}
+
 async function main(): Promise<void> {
   const cmd = process.argv[2];
 
@@ -75,9 +104,9 @@ async function main(): Promise<void> {
     console.log('');
     const missing = results.filter((r) => !r.available);
     if (missing.length > 0) {
-      console.log(`Install missing deps, then run:\n  ${CLAUDE_VIDEO.pluginCommands.join('\n  ')}`);
+      console.log(`Install missing deps, then run:\n  claude-toolchain setup`);
     } else {
-      console.log(`All deps ready. Install the plugin:\n  ${CLAUDE_VIDEO.pluginCommands.join('\n  ')}`);
+      console.log(`All deps ready. Run:\n  claude-toolchain setup`);
     }
     return;
   }
@@ -114,8 +143,15 @@ async function main(): Promise<void> {
 
     console.log('Creating config files...');
     await createConfigFiles(CLAUDE_VIDEO);
-    console.log('\n=== Setup complete ===');
-    console.log(`Install the plugin inside Claude Code:\n  ${CLAUDE_VIDEO.pluginCommands.join('\n  ')}`);
+
+    console.log('\nInstalling plugin...');
+    const pluginOk = await installPlugin(CLAUDE_VIDEO);
+    if (pluginOk) {
+      console.log('\n=== Setup complete — plugin installed ===');
+    } else {
+      console.log('\n=== Setup complete ===');
+      console.log(`Install the plugin manually inside Claude Code:\n  ${CLAUDE_VIDEO.pluginCommands.join('\n  ')}`);
+    }
     return;
   }
 
