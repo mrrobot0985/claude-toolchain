@@ -41,7 +41,7 @@ jobs:
 
       - name: Publish to npm
         run: |
-          if [ "${{ inputs.dry_run }}" = "true" ]; then
+          if [ "${{ inputs.dry_run }}" = "true" ] || [ "$DRY_RUN" = "true" ]; then
             echo "Dry run: verifying build artifacts"
             test -d dist/ && ls -la dist/
             test -f dist/cli.js && echo "OK: dist/cli.js exists"
@@ -52,3 +52,4 @@ jobs:
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          DRY_RUN: ${{ env.DRY_RUN }}

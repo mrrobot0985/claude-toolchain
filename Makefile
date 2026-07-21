@@ -12,7 +12,7 @@ act-ci:
 
 ## Run release workflow locally with act (dry-run, no actual publish)
 act-release-dry:
-	act workflow_dispatch -e .act-events/workflow-dispatch-release.json -W .github/workflows/release.yml
+	act workflow_dispatch -e .act-events/workflow-dispatch-release.json -W .github/workflows/release.yml --env DRY_RUN=true
 
 ## Run release workflow locally with act (requires NPM_TOKEN secret)
 act-release:
