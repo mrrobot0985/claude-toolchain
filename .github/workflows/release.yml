@@ -42,7 +42,8 @@ jobs:
       - name: Publish to npm
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
-            npm publish --dry-run
+            echo "Dry run: building tarball only"
+            npm pack
           else
             npm publish --provenance
           fi
